@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--总天气信息布局，引入Now、forecast、aqi、suggestion-->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+
+    <ImageView
+        android:id="@+id/bing_pic_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
+    <!--滚动显示-->
+    <ScrollView
+        android:id="@+id/weather_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+        <!--书中P110-->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
+
+            <include layout="@layout/title"/>
+
+            <include layout="@layout/now"/>
+
+            <include layout="@layout/forecast"/>
+
+            <include layout="@layout/aqi"/>
+
+            <include layout="@layout/suggestion"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</FrameLayout>
