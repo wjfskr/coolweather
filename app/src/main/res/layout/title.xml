@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--title.xml作为头布局-->
+<!--title.xml作为头布局（ActionBar）-->
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize">
-
     <!--居中显示城市-->
     <TextView
         android:id="@+id/title_city"
@@ -13,7 +12,6 @@
         android:layout_centerInParent="true"
         android:textColor="#fff"
         android:textSize="20sp"/>
-
     <!--居右显示更新时间-->
     <TextView
         android:id="@+id/title_update_time"
@@ -24,5 +22,4 @@
         android:layout_centerVertical="true"
         android:textColor="#fff"
         android:textSize="16sp"/>
-
 </RelativeLayout>

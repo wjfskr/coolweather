@@ -40,7 +40,7 @@ public class ChooseAreaFragment extends Fragment {
     private ListView listView;
     private Button backButton;
     private ArrayAdapter<String> adapter;
-    private List<String> dataList = new ArrayList<>();
+    private List<String> dataList = new ArrayList<>();//这个容器是暂时存放省或市或县，作为适配器的参数
     private ProgressDialog progressDialog;
     //选中状态
     public static final int LEVEL_PROVINCE = 0;
@@ -61,32 +61,35 @@ public class ChooseAreaFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.choose_area, container, false);//加载布局(书中P146)
-        titleText = (TextView) view.findViewById(R.id.title_text);//获得控件实例
-        backButton = (Button) view.findViewById(R.id.back_button);//获得控件实例
-        listView = (ListView) view.findViewById(R.id.list_view);//获得控件实例
-        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);//初始化ArrayAdapter(书中P114)
+        //加载布局，选择地区布局
+        View view = inflater.inflate(R.layout.choose_area, container, false);
+        //获取模拟ActionBar的布局控件实例
+        titleText = (TextView) view.findViewById(R.id.title_text);//获得标题实例
+        backButton = (Button) view.findViewById(R.id.back_button);//获得返回按钮实例
+        listView = (ListView) view.findViewById(R.id.list_view);//获得列表实例
+        adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);//初始化ArrayAdapter
         listView.setAdapter(adapter);//设为ListView适配器
         return view;
     }
-
+    //活动与碎片相关联已经建立完毕时调用
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        //列表的点击事件
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(currentLevel == LEVEL_PROVINCE){ //当前选中的级别==省
-                    selectedProvince = provinceList.get(position);
-                    queryCities();//再查询市
-                }else if (currentLevel == LEVEL_CITY) {//当前选中的级别==市
-                    selectedCity = cityList.get(position);
-                    queryCounties();
+                if(currentLevel == LEVEL_PROVINCE){ //当前页面加载的级别==省
+                    selectedProvince = provinceList.get(position);//根据点击的位置得到所选择的省份
+                    queryCities();//查询市（加载市级数据）
+                }else if (currentLevel == LEVEL_CITY) {//当前页面加载的级别==市
+                    selectedCity = cityList.get(position);//根据点击的位置得到所选择的城市
+                    queryCounties();//查询县（加载县级数据）
                 }
-                else if (currentLevel == LEVEL_COUNTY){//是县
-                    String weatherId = countyList.get(position).getWeatherId();
+                else if (currentLevel == LEVEL_COUNTY){//当前页面加载的级别==县
+                    String weatherId = countyList.get(position).getWeatherId();//根据点击的位置得到城市天气ID
                     Intent intent = new Intent(getActivity(), WeatherActivity.class);//启动WeatherActivity
-                    intent.putExtra("weather_id", weatherId);//传值P50
+                    intent.putExtra("weather_id", weatherId);//传值：天气的ID
                     startActivity(intent);
                     getActivity().finish();
                 }
@@ -147,7 +150,7 @@ public class ChooseAreaFragment extends Fragment {
         }
     }
     /**
-     * 查询选中市内所有的县，优先从数据库查询，如果没有查询到再去服务器上查
+     * 查询选中市内所有的县，优先从"数据库"查询，如果没有查询到再去服务器上查
      */
     private void queryCounties(){
         titleText.setText(selectedCity.getCityName());//将被选中的市份作为标题
@@ -170,7 +173,7 @@ public class ChooseAreaFragment extends Fragment {
         }
     }
     /**
-     * 根据传入的地址和类型从服务器上查询省市县数据
+     * 根据传入的地址和类型从"服务器"上查询省市县数据
      */
     private void queryFromServer(String address, final String type) {
         showProgressDialog();//显示对话框
@@ -192,10 +195,13 @@ public class ChooseAreaFragment extends Fragment {
                 boolean result = false;
 
                 if ("province".equals(type)){
+                    //解析数据并存于数据库
                     result = Utility.handleProvinceResponse(responseText);//解析和处理服务器返回的数据Utility中的方法
                 }else if ("city".equals(type)){
+                    //解析数据并存于数据库
                     result = Utility.handleCityResponse(responseText, selectedProvince.getId());//获取城市所在省的id
                 }else if ("county".equals(type)){
+                    //解析数据并存于数据库
                     result = Utility.handleCountResponse(responseText, selectedCity.getId());
                 }
 
@@ -205,7 +211,7 @@ public class ChooseAreaFragment extends Fragment {
                         public void run() {
                             closeProgressDialog();//关闭对话框
                             if ("province".equals(type)){
-                                queryProvinces();//显示在屏幕上
+                                queryProvinces();//再次开启查询，此次可能因为访问服务器数据，存于数据库，而成功查取
                             }else if ("city".equals(type)){
                                 queryCities();
                             }else if ("county".equals(type)){

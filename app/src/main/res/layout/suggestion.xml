@@ -7,7 +7,6 @@
     android:layout_height="wrap_content"
     android:layout_margin="15dp"
     android:background="#8000">
-
     <!--标题-->
     <TextView
         android:layout_width="wrap_content"
@@ -17,7 +16,6 @@
         android:text="生活建议"
         android:textColor="#fff"
         android:textSize="20sp"/>
-
     <!--舒适度-->
     <TextView
         android:id="@+id/comfort_text"
@@ -25,7 +23,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
         android:textColor="#fff" />
-
     <!--洗车指数-->
     <TextView
         android:id="@+id/car_wash_text"
@@ -33,7 +30,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
         android:textColor="#fff" />
-
     <!--运动建议-->
     <TextView
         android:id="@+id/sport_text"
@@ -41,5 +37,4 @@
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
         android:textColor="#fff" />
-
 </LinearLayout>

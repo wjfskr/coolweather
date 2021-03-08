@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--这是一个选择地区的布局-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fff">
-    <!--头布局作为标题-->
+    <!--ActionBar,使用碎片应该尽量避免使用ActionBar或ToolBar，不然在复用时可能出现问题-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -25,7 +26,7 @@
             android:layout_marginLeft="10dp"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/ic_launcher_background"/>
+            android:background="@drawable/back"/>
     </RelativeLayout>
     <!--省市县数据的显示位置-->
     <ListView

@@ -52,44 +52,49 @@ public class WeatherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //可以使用MaterialDesign去实现背景图和状态栏融合，麻烦
+        //Android5.0以上可以用此方法实现
         if (Build.VERSION.SDK_INT >= 21){
             View decorView = getWindow().getDecorView();//获取DecorView实例控件
-            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);//活动布局显示在状态栏上
-            getWindow().setStatusBarColor(Color.TRANSPARENT);//状态栏透明
+            //活动布局显示在状态栏上
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);//状态栏设置为透明
         }
-        setContentView(R.layout.activity_weather2);
+        setContentView(R.layout.activity_weather);
 
         //初始化各控件
-        weatherLayout = (ScrollView) findViewById(R.id.weather_layout);
-        titleCity = (TextView) findViewById(R.id.title_city);
-        titleUpdateTime = (TextView) findViewById(R.id.title_update_time);
-        degreeText = (TextView)findViewById(R.id.degree_text);
-        weatherInfoText = (TextView) findViewById(R.id.weather_info_text);
-        forecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);
-        aqiText = (TextView) findViewById(R.id.aqi_text);
-        pm25Text = (TextView) findViewById(R.id.pm25_text);
-        comfortText = (TextView) findViewById(R.id.comfort_text);
-        carWashText = (TextView) findViewById(R.id.car_wash_text);
-        sportText = (TextView) findViewById(R.id.sport_text);
-        bingPicImg = (ImageView)  findViewById(R.id.bing_pic_img);
+        weatherLayout = (ScrollView) findViewById(R.id.weather_layout);//总的天气布局
+        titleCity = (TextView) findViewById(R.id.title_city);//城市名(标题)
+        titleUpdateTime = (TextView) findViewById(R.id.title_update_time);//天气的更新时间
+        degreeText = (TextView)findViewById(R.id.degree_text);//当天气温
+        weatherInfoText = (TextView) findViewById(R.id.weather_info_text);//当天概况
+        forecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);//未来天气信息
+        aqiText = (TextView) findViewById(R.id.aqi_text);//天气质量标准1
+        pm25Text = (TextView) findViewById(R.id.pm25_text);//天气质量标准2
+        comfortText = (TextView) findViewById(R.id.comfort_text);//生活建议--舒适度
+        carWashText = (TextView) findViewById(R.id.car_wash_text);//生活建议--洗车指数
+        sportText = (TextView) findViewById(R.id.sport_text);//生活建议--运动建议
+        bingPicImg = (ImageView)  findViewById(R.id.bing_pic_img);//天气背景图片
 
-
+        //加载缓存（实现若用户选择过城市，则用户无需再次选择）
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather", null);
         if (weatherString != null){//有缓存时，直接解析天气数据
             Weather weather = Utility.handleWeatherResponse(weatherString);
             showWeatherInfo(weather);
         }else {
+            //获取从列表传过来的城市id
             String weatherId = getIntent().getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);//无缓存，将ScrollView隐藏
-            requestWeather(weatherId);
+            requestWeather(weatherId);//根据天气id请求城市天气信息
         }
 
+        //每日一图（同上，用缓存的方式，避免重复加载）
         String bingPic = prefs.getString("bing_pic", null);
         if (bingPic != null){
             Glide.with(this).load(bingPic).into(bingPicImg);
         }else {
-            loadBingPic();
+            loadBingPic();//如果没有缓存过就去获取
         }
 
     }
@@ -97,7 +102,7 @@ public class WeatherActivity extends AppCompatActivity {
      * 根据天气id请求城市天气信息
      */
     public void requestWeather(final String weatherId){
-        String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=b38826493b8a477eb8c1334f30de6ae2";
+        String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=784ba8fc12dd4a4ca4bdaa4a178414f3";
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -113,15 +118,18 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 final String responseText = response.body().string();
+                //将JSON数据转换为Weather对象
                 final Weather weather = Utility.handleWeatherResponse(responseText);
                 runOnUiThread(new Runnable() {//切换到主线程
                     @Override
                     public void run() {
+                        //如果status为ok说明请求天气成功
                         if (weather != null && "ok".equals(weather.status)){//P514
+                            //将JSON数据（String）缓存到SharedPreferences
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();//文件存储
                             editor.putString("weather", responseText);
                             editor.apply();
-                            showWeatherInfo(weather);
+                            showWeatherInfo(weather);//处理并展示Weather实体类中的数据
                         }else {
                             Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                         }
@@ -136,17 +144,17 @@ public class WeatherActivity extends AppCompatActivity {
      * 处理并展示Weather实体类中的数据
      */
     private void showWeatherInfo(Weather weather) {
-        //获取数据
+        //从对象中获取数据
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
         String degree = weather.now.temperature + "C";
         String weatherInfo = weather.now.more.info;
         //设置内容
-        titleCity.setText(cityName);
-        titleUpdateTime.setText(updateTime);
-        degreeText.setText(degree);
-        weatherInfoText.setText(weatherInfo);
-        forecastLayout.removeAllViews();//现将未来几天的布局移除
+        titleCity.setText(cityName);//城市标题
+        titleUpdateTime.setText(updateTime);//更新时间
+        degreeText.setText(degree);//气温
+        weatherInfoText.setText(weatherInfo);//当天天气概况
+        forecastLayout.removeAllViews();//现将未来几天的布局移除（先移除后添加，以此达到更新的目的）
         for (Forecast forecast : weather.forecastList) {//利用循环来处理每天的天气
             View view = LayoutInflater.from(this).inflate(R.layout.forecast_item, forecastLayout, false);//动态加载布局
             TextView dateText = (TextView) view.findViewById(R.id.date_text);
@@ -159,16 +167,16 @@ public class WeatherActivity extends AppCompatActivity {
             minText.setText(forecast.temperature.min);
             forecastLayout.addView(view);//动态加入布局，书中P515
         }
-        if (weather.aqi != null) {
+        if (weather.aqi != null) {//空气质量
             aqiText.setText(weather.aqi.city.aqi);
             pm25Text.setText(weather.aqi.city.pm25);
         }
         String comfort = "舒适度" + weather.suggestion.comfort.info;
         String carWash = "" + weather.suggestion.carWash.info;
         String sport = "" + weather.suggestion.sport.info;
-        comfortText.setText(comfort);
-        carWashText.setText(carWash);
-        sportText.setText(sport);
+        comfortText.setText(comfort);//生活建议--舒适度
+        carWashText.setText(carWash);//生活建议--洗车指数
+        sportText.setText(sport);//生活建议--运动建议
         weatherLayout.setVisibility(View.VISIBLE);//将ScollView显示
     }
 /**
