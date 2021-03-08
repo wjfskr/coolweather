@@ -88,10 +88,20 @@ public class ChooseAreaFragment extends Fragment {
                 }
                 else if (currentLevel == LEVEL_COUNTY){//当前页面加载的级别==县
                     String weatherId = countyList.get(position).getWeatherId();//根据点击的位置得到城市天气ID
-                    Intent intent = new Intent(getActivity(), WeatherActivity.class);//启动WeatherActivity
-                    intent.putExtra("weather_id", weatherId);//传值：天气的ID
-                    startActivity(intent);
-                    getActivity().finish();
+                    //如果当前页面是在主页面那就要跳页，如果页面在天气页面(通过nav点开的)，就只需要更新数据
+                    if(getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);//启动WeatherActivity
+                        intent.putExtra("weather_id", weatherId);//传值：天气的ID
+                        startActivity(intent);
+                        getActivity().finish();
+                    }else if(getActivity() instanceof WeatherActivity){//此时是在nav中选择城市
+                        //碎片中获取活动的方法
+                         WeatherActivity  activity=(WeatherActivity) getActivity();
+                        activity.drawerLayout.closeDrawers();//关闭nav
+                        activity.swipeRefresh.setRefreshing(true);//开启刷新（只是个样）
+                        activity.requestWeather(weatherId);//请求天气信息
+                    }
+
                 }
             }
         });
